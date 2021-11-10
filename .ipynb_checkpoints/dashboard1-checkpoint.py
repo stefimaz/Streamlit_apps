@@ -13,7 +13,7 @@ import hvplot.pandas
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm
-import statistics
+#import statistics
 #from MCForecastTools_2Mod import MCSimulation
 
 # title of the project and introduction on what to do 
@@ -26,7 +26,7 @@ st.write('***Choose wisely***.')
 
 # chosen stock and crypto tickers. choice of the 3 different options
 
-tickers = ("AAPL","CVX","F","JPM","LUMN","MO","MSFT","PM","T", "VZ","XOM" )
+tickers = ("AAPL","CVX","F","JPM","LUMN","MO","MSFT","PM","T", "VZ","XOM")
 crypto = ("BTC-USD", "ETH-USD")
 options = ("Same Stock", "Crypto", "Keep the cash")
 
@@ -49,11 +49,11 @@ def close_price(dropdown_stocks):
     data = yf.download(dropdown_stocks, period = "today", interval= "1d")['Adj Close'][0]
     price = data    
     return round(data,2)
-
+stock_name = tickerData.info['shortName']
 # this will display the chosen stock, the value of the stock, and a line chart of the price history    
 if len(dropdown_stocks) > 0:
     df = yf.download(dropdown_stocks, start, end)['Adj Close']
-    st.header('Historical value of {}'.format(dropdown_stocks))
+    st.header(f'Historical value of {dropdown_stocks} ({stock_name})')
     st.info('The current value is ${}'.format(close_price(dropdown_stocks)))
     st.line_chart(df)
     
