@@ -26,7 +26,7 @@ st.write('***Choose wisely***.')
 
 # chosen stock and crypto tickers. choice of the 3 different options
 
-tickers = ("AAPL","F","JPM","LUMN","MO","MSFT","T")
+tickers = ("AAPL","F","JPM","LUMN","MO","MSFT","T","XOM")
 crypto = ("BTC-USD", "ETH-USD")
 options = ("Same Stock", "Crypto", "Keep the cash")
 
