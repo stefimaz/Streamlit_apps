@@ -55,7 +55,7 @@ stock_name = tickerData.info['shortName']
 # this will display the chosen stock, the value of the stock, and a line chart of the price history    
 if len(dropdown_stocks) > 0:
     df = yf.download(dropdown_stocks, start, end)['Adj Close']
-    st.header(f'Historical value of {dropdown_stocks} ({stock_name})')
+    st.subheader(f'Historical value of {dropdown_stocks} ({stock_name})')
     st.info('The current value is ${}'.format(close_price(dropdown_stocks)))
     st.line_chart(df)
     
@@ -68,7 +68,7 @@ if len(dropdown_stocks) > 0:
     # Calculate the yearly % after getting the value from yahoo finance
     string_summary = tickerData.info['dividendYield']
     yearly_div = (string_summary) * 100
-    st.info(f'{yearly_div}%')
+    st.info(f'{yearly_div: ,.2f}%')
     
 # Asking the user for desired amount of share to purchase, showing 100 shares to start. minimum will be 10 shares    
 share_amount= st.number_input('How many shares do you want?',value=100, min_value=10)   
@@ -150,8 +150,9 @@ if dropdown_option == "Same Stock":
     # (monthly amount, years, percent returned)
     Same_maturity = same_stock(same_amount_div, year_opt1, same_interest)
     
-    st.subheader(f'Your stock projection for {year_opt1} after reinvesting the dividends will be:$ {Same_maturity}')
-    
+    st.subheader(f'Your stock projection after {year_opt1} of reinvesting the dividends will be:')
+    st.success(f'${Same_maturity}')
+   
     # Calculating the projected return for crypto opyion chosen here
 elif dropdown_option == "Crypto":
     
