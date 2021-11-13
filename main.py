@@ -2,11 +2,11 @@ import streamlit as st
 import pandas as pd
 import yfinance as yf
 import datetime
-import json
+
 import os
 from pathlib import Path
 import requests
-from dotenv import load_dotenv
+
 import hvplot.pandas
 import numpy as np
 import matplotlib.pyplot as plt
@@ -29,7 +29,14 @@ st.write('***Choose wisely***.')
 
 tickers = ("AAPL","F","JPM","LUMN","MO","MSFT","T","XOM")
 crypto = ("BTC-USD", "ETH-USD", "BNB-USD")
-options = ("Same Stock", "Crypto", "Keep the cash")
+options = ("Keep the cash", "Same Stock", "Crypto")
+
+#dropdown_crypto = st.selectbox('',crypto)    
+#crypto_forecast = predict_crypto(dropdown_crypto, year_opt2)    
+#crypto_gain = round( ((float(crypto_forecast["Forecasted Values"][-1:]) - float(crypto_forecast["Forecasted Values"][0])) / crypto_forecast["Forecasted Values"][0]) * 100 , 2)    
+#crypto_future = {round(yearly_div_amount*crypto_gain,2)}      
+#SIP_stock_maturity = 0.0
+#SIP_maturity = 0.0
 
 # box selection for the stock to invest in
 dropdown_stocks = st.selectbox('Pick your stock', tickers)
@@ -61,7 +68,7 @@ if len(dropdown_stocks) > 0:
     st.line_chart(df)
     
     # Showing what is the yearly dividend % for the chosen stock
-    st.text(f'The average yearly dividend {dropdown_stocks} is:')
+    st.text(f'The average yearly yield {dropdown_stocks} is:')
  
     tickerData = yf.Ticker(dropdown_stocks) # Get ticker data
     tickerDf = tickerData.history(period='1d', start=start, end=end) #get the historical prices for this ticker
@@ -136,10 +143,10 @@ def mc_stock_price(years):
     potential_lower_price = [element * stock_hist[dropdown_stocks]["close"][-1] for element in Lower_Yields]
     potential_mean_price = [element * stock_hist[dropdown_stocks]["close"][-1] for element in Means]
 
-    prices_df = pd.DataFrame(columns = ["potential_lower_price", "potential_upper_price", "potential_mean_price"])
-    prices_df["potential_lower_price"] = potential_lower_price
-    prices_df["potential_mean_price"] = potential_mean_price
-    prices_df["potential_upper_price"] = potential_upper_price
+    prices_df = pd.DataFrame(columns = ["Lower Bound Price", "Upper Bound Price", "Forecasted Average Price"])
+    prices_df["Lower Bound Price"] = potential_lower_price
+    prices_df["Forecasted Average Price"] = potential_mean_price
+    prices_df["Upper Bound Price"] = potential_upper_price
 
     fig = px.line(prices_df)
     fig.update_layout(
@@ -151,6 +158,9 @@ def mc_stock_price(years):
     )
     
     st.write(fig)
+    
+    
+    return prices_df
 
 def cumsum_shift(s, shift = 1, init_values = [0]):
     s_cumsum = pd.Series(np.zeros(len(s)))
@@ -342,101 +352,10 @@ df_stock_prices = pd.DataFrame()
 # Fetch the closing prices for all the stocks
 df_stock_prices[dropdown_option] = close_price(dropdown_stocks)
 
-# Calculating the cumulative returns after choosing the same stock option
-if dropdown_option == "Same Stock":
-    @st.cache
-    def relativeret(df):
-        rel = df.pct_change()
-        cumret = (1 + rel).cumprod() - 1
-        cumret = cumret.fillna(0)
-        return cumret
-    
-    # Showing the plot of the cumulative returns
-    if len(dropdown_stocks) > 0:
-        df = relativeret(yf.download(dropdown_stocks, start, end)['Adj Close'])
-        st.header('Cumulative returns of {}'.format(dropdown_stocks))
-        st.line_chart(df)
-     
-    # Calculate the annual average return data for the stocks
-    # Use 252 as the number of trading days in the year    
-    daily = yf.download(dropdown_stocks, start, end)['Adj Close'] 
-    def average_annual (daily):
-        rel = daily.pct_change()
-        ave_rel= rel.mean()
-        anual_ret = (ave_rel * 252) * 100
-        return anual_ret
-    yearly_returns = average_annual(daily)
-    
-    st.subheader(f'Average yearly returns of {dropdown_stocks} is {average_annual(daily): .2f}%')
 
-    
-    # Slider 1 with option to select the amount of year to reinvest(10, 20 or 30)
-    year_opt1 = st.slider('How many years of investment projections?', min_value= 10, max_value= 30, value=10, step= 10) 
-    
-    mc_stock_price(year_opt1)
-    st.subheader('This is the simulated price of the stocks you chose.')
-
-
-    # simulation of return of the stock with dividends to be added here 
-    same_amount_div = yearly_div_amount / 12
-    same_interest = yearly_returns
-    investment3 = initial_investment
-    @st.cache
-    def same_stock(investment, tenure, interest, amount=investment3, is_year=True, is_percent=True, show_amount_list=False):
-        tenure = tenure*12 if is_year else tenure
-        interest = interest/100 if is_percent else interest
-        interest /= 12
-        amount_every_month = {}
-        for month in range(tenure):
-            amount = (amount + investment)*(1+interest)
-            amount_every_month[month+1] = amount
-        return {f'A': amount,
-                'Amount every month': amount_every_month} if show_amount_list else round(amount, 2) 
-    # (monthly amount, years, percent returned)
-    Same_maturity = same_stock(same_amount_div, year_opt1, same_interest)
-    
-    st.subheader(f'Your stock average value after {year_opt1} of reinvesting the dividends will be:')
-    st.success(f'${Same_maturity}')
-    
-
-
-
-
-
-
-    
-    # Calculating the projected return for crypto opyion chosen here
-elif dropdown_option == "Crypto":
-    
-    # selection of the crypto to reinvest in
-    dropdown_crypto = st.selectbox('What crypto would you like to reinvest in?', crypto)
-    
-    # Getting the data for selected crypto from yahoo finance and ploting it as a line chart
-    if len(dropdown_crypto) > 0:
-        df = yf.download(dropdown_crypto, start, end)
-        st.header('Historical value of {}'.format(dropdown_crypto))
-        st.dataframe(df)
-        st.line_chart(df["Adj Close"])
-        st.text("Using regression analysis, this is a model created to forecast the moving average of crypto-currency.")
-        predict_crypto(dropdown_crypto)
-    
-        # Slider 2 with option to select the amount of year to reinvest(10, 20 or 30)
-    year_opt2 = st.slider('Using the same regression model, how many years of investment projections?', min_value= 5, max_value= 15, value=5, step= 5)
-    crypto_forecast = predict_crypto(dropdown_crypto, year_opt2)
-    st.dataframe(crypto_forecast)
-    
-    
-    crypto_gain = round( ((float(crypto_forecast["Forecasted Values"][-1:]) - float(crypto_forecast["Forecasted Values"][0])) / crypto_forecast["Forecasted Values"][0]) * 100 , 2)
-    st.info(f"The percent gain from the forecasted values is {crypto_gain}%")
-    st.text(f"Using the total yearly dividend of ${yearly_div_amount} reinvested in {dropdown_crypto} could get you:") 
-    st.success(f"Future value of ${round(yearly_div_amount*crypto_gain,2)}")
-    
-    
-    
-    # simulation of chosen crypto using invested dividends to be added here
-     
 # Calculating the projected return for reinvestment into the same stock chosen here
-elif dropdown_option == "Keep the cash":
+
+if dropdown_option == "Keep the cash":
     
     # Slider 3 with option to select the amount of year to reinvest(10, 20 or 30)
     year_opt3 = st.slider('How many years of pocketing the cash?', min_value= 10, max_value= 30, value=10, step= 10)
@@ -465,13 +384,16 @@ elif dropdown_option == "Keep the cash":
         return {f'A': amount,
                 'Amount every month': amount_every_month} if show_amount_list else round(amount, 2) 
     # (monthly amount, years, percent returned)
+    
     SIP_stock_maturity = sip_stock(0, year_opt3, interest1)
+    
+    
     
     st.subheader(f'The projected return for {dropdown_stocks} is:')
     st.success(f'${SIP_stock_maturity}')
-#    st.subheader(f'Your total dividend return will be {SIP_maturity}')
+    
+#    st.subheader(f'Your total dividend return will be {SIP_maturity}')        
 
-         
     investment = yearly_div_amount / 12
     interest = 0
     # simulation of dividend investment over time. 
@@ -488,8 +410,119 @@ elif dropdown_option == "Keep the cash":
         return {f'A': amount,
                 'Amount every month': amount_every_month} if show_amount_list else round(amount, 2) 
     # (monthly amount, years, percent returned)
+    
     SIP_maturity = sip(investment, year_opt3, interest)
     
     st.subheader(f'Your total dividend return will be')
     st.success(f'${SIP_maturity}')
+    
 
+    
+    # Calculating the projected return for crypto opyion chosen here
+elif dropdown_option == "Same Stock":
+    @st.cache
+    def relativeret(df):
+        rel = df.pct_change()
+        cumret = (1 + rel).cumprod() - 1
+        cumret = cumret.fillna(0)
+        return cumret
+    
+    # Showing the plot of the cumulative returns
+    if len(dropdown_stocks) > 0:
+        df = relativeret(yf.download(dropdown_stocks, start, end)['Adj Close'])
+        st.header('Cumulative returns of {}'.format(dropdown_stocks))
+        st.line_chart(df)
+     
+    # Calculate the annual average return data for the stocks
+    # Use 252 as the number of trading days in the year    
+    daily = yf.download(dropdown_stocks, start, end)['Adj Close'] 
+    def average_annual (daily):
+        rel = daily.pct_change()
+        ave_rel= rel.mean()
+        anual_ret = (ave_rel * 252) * 100
+        return anual_ret
+    yearly_returns = average_annual(daily)
+    
+    st.subheader(f'Average yearly returns of {dropdown_stocks} is {average_annual(daily): .2f}%')
+
+   
+    # Slider 1 with option to select the amount of year to reinvest(10, 20 or 30)
+    year_opt1 = st.slider('How many years of investment projections?', min_value= 10, max_value= 30, value=10, step= 10) 
+    
+    
+    mc_stock = mc_stock_price(year_opt1)
+    st.subheader(f'This is the simulated price for {dropdown_stocks} ({stock_name}).')
+    st.dataframe(mc_stock)
+
+    zero = round(mc_stock["Forecasted Average Price"][0],2)
+    last = round(mc_stock["Forecasted Average Price"][year_opt1-1],2)
+    pct_gain  =  ( ( (last- zero) / zero ) )
+
+    st.info(f"The percent gain of the simulated forecasts is {round(float(pct_gain*100), 2)}%")
+    
+    st.subheader(f'Your stock average value after {year_opt1} years of reinvesting the dividends will be:')
+    
+    st.text(f"With your dividend of ${yearly_div_amount} reinvested every years, you would receive.")
+    st.success(f'${round(yearly_div_amount*pct_gain,2)}')
+    
+    # Calculating the cumulative returns after choosing the same stock option
+elif dropdown_option == "Crypto":
+    
+    # selection of the crypto to reinvest in
+    dropdown_crypto = st.selectbox('What crypto would you like to reinvest in?', crypto)
+    
+    # simulation of chosen crypto using invested dividends
+    
+    # Getting the data for selected crypto from yahoo finance and ploting it as a line chart
+    if len(dropdown_crypto) > 0:
+        df = yf.download(dropdown_crypto, start, end)
+        st.header('Historical value of {}'.format(dropdown_crypto))
+        st.dataframe(df)
+        st.line_chart(df["Adj Close"])
+        st.text("Model created to forecast the moving average of crypto-currency.\nWe are using regression analysis, ")
+        predict_crypto(dropdown_crypto)
+    
+        # Slider 2 with option to select the amount of year to reinvest(10, 20 or 30)
+    year_opt2 = st.slider('Using the same regression model, how many years of investment projections?', min_value= 5, max_value= 15, value=5, step= 5)
+    crypto_forecast = predict_crypto(dropdown_crypto, year_opt2)
+    st.dataframe(crypto_forecast)
+    
+    crypto_gain = round( ((float(crypto_forecast["Forecasted Values"][-1:]) - float(crypto_forecast["Forecasted Values"][0])) / crypto_forecast["Forecasted Values"][0]) * 100 , 2)
+    st.info(f"The percent gain from the forecasted values is {crypto_gain}%")
+    st.text(f"Using the total yearly dividend of ${yearly_div_amount} reinvested in {dropdown_crypto} could get you:") 
+    st.success(f"Future value of ${round(yearly_div_amount*crypto_gain,2)}")
+       
+     
+   
+    
+#dropdown_crypto = st.selectbox('',crypto)    
+#crypto_forecast = predict_crypto(dropdown_crypto, year_opt2)    
+#crypto_gain = round( ((float(crypto_forecast["Forecasted Values"][-1:]) - float(crypto_forecast["Forecasted Values"][0])) / crypto_forecast["Forecasted Values"][0]) * 100 , 2)    
+#crypto_future = {round(yearly_div_amount*crypto_gain,2)}      
+#future_stocks = SIP_stock_maturity
+#future_div = SIP_maturity
+
+
+#def summary(dropdown_option):
+#    senarios = ["a","b","c"]
+#    for senario in senarios:
+                
+    
+
+#with st.expander("See Summary of the different options"):
+#    st.subheader("This shows yo uthe diffence of the 3 different options to reinvest in:")
+#    col1, col2, col3 = st.columns(3)
+ #   with col1:
+ #       st.info("Keep the Cash")
+ #       st.success(f'Stock value:${SIP_stock_maturity}')
+ #       st.success(f'Dividends value:${SIP_maturity}')
+ #       
+ #   with col2:
+ #       st.info("Same Stock")
+#        st.success(f'')
+        
+#    with col3:
+ #       st.info("Crypto")
+ #       st.success(f"Future value ${round(yearly_div_amount*crypto_gain,2)}")
+        
+        
