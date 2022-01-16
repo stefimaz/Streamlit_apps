@@ -300,7 +300,7 @@ if button1:
     col1.image(teams_dict[nfc_team1]['Logo'], width = 200)
     col1.image(teams_dict[nfc_team2]['Logo'], width = 200)
     
-    scores7, winner7 = Score_Predictor('Tennessee Titans', afc_lowest)
+    scores7, winner7 = Score_Predictor('Tennessee Titans', 'Buffalo Bills')
     scores8, winner8 = Score_Predictor(afc_team1, afc_team2)
     scores9, winner9 = Score_Predictor('Green Bay Packers', nfc_lowest)
     scores10, winner10 = Score_Predictor(nfc_team1, nfc_team2)
