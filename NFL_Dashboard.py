@@ -285,20 +285,20 @@ if button1:
     col1, col2 = st.columns(2)
     col1.title("Divisional Round")
     col1.subheader("AFC Divisional Game 1")
+    col1.image(teams_dict[afc_team2]['Logo'], width = 200)
     col1.image(teams_dict['Tennessee Titans']['Logo'], width = 200)
-    col1.image(teams_dict['Buffalo Bills']['Logo'], width = 200)
 
     col1.subheader("AFC Divisional Game 2")
+    col1.image(teams_dict['Buffalo Bills']['Logo'], width = 200)
     col1.image(teams_dict[afc_team1]['Logo'], width = 200)
-    col1.image(teams_dict[afc_team2]['Logo'], width = 200)
 
     col1.subheader("NFC Divisional Game 1")
-    col1.image(teams_dict['Green Bay Packers']['Logo'], width = 200)
     col1.image(teams_dict[nfc_lowest]['Logo'], width = 200)
+    col1.image(teams_dict['Green Bay Packers']['Logo'], width = 200)
 
     col1.subheader("NFC Divisional Game 2")
-    col1.image(teams_dict[nfc_team1]['Logo'], width = 200)
     col1.image(teams_dict['Los Angeles Rams']['Logo'], width = 200)
+    col1.image(teams_dict[nfc_team1]['Logo'], width = 200)
     
     scores7, winner7 = Score_Predictor('Tennessee Titans', 'Buffalo Bills')
     scores8, winner8 = Score_Predictor(afc_team1, afc_team2)
