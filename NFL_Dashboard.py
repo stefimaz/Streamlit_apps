@@ -323,14 +323,14 @@ if button1:
     col1.title("Conference Championships")
     col1.subheader("AFC Final Game")
     col1.image(teams_dict[winner7]['Logo'], width = 200)
-    col1.image(teams_dict[winner8]['Logo'], width = 200)
+    col1.image(teams_dict["Kansas City Chiefs"]['Logo'], width = 200)
 
     col1.subheader("NFC Final Game")
     col1.image(teams_dict[winner9]['Logo'], width = 200)
-    col1.image(teams_dict[winner10]['Logo'], width = 200)
+    col1.image(teams_dict["Los Angeles Rams"]['Logo'], width = 200)
 
-    scores11, winner11 = Score_Predictor(winner7, winner8)
-    scores12, winner12 = Score_Predictor(winner9, winner10)
+    scores11, winner11 = Score_Predictor(winner7, 'Kansas City Chiefs')
+    scores12, winner12 = Score_Predictor(winner9, 'Los Angeles Rams')
 
     col2.title("Praedico")
     col2.subheader("AFC Final Winner")
