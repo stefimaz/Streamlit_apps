@@ -343,10 +343,10 @@ if button1:
     col1, col2 = st.columns(2)
     col1.title("Super Bowl")
     col1.image(teams_dict[winner11]['Logo'], width = 200)
-    col1.image(teams_dict[winner12]['Logo'], width = 200)
+    col1.image(teams_dict["Los Angeles Rams"]['Logo'], width = 200)
 
     col2.title("Super Bowl Winner")
-    scores13, winner13 = Score_Predictor(winner11, winner12)
+    scores13, winner13 = Score_Predictor(winner11, "Los Angeles Rams")
           
     col2.image(teams_dict[winner13]['Logo'], width = 600, caption = f'Final Score: {scores13[0]: .0f} vs. {scores13[1]: .0f}')
 
