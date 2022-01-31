@@ -64,6 +64,9 @@ selected_team = st.sidebar.selectbox("Teams", sorted_unique_team)
 
 selected_model = st.sidebar.selectbox("Choose your Model", sorted_models)
 
+st.sidebar.text("MLP has the lowest margin of error!")
+st.sidebar.text("Choose wisely..")
+
 # get index of every team's data
 team_index = com_data['Team']
 
